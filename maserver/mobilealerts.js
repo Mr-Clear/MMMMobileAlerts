@@ -32,7 +32,9 @@ nconf.defaults({
   // post the resulting JSON to a http(s) Service
   'serverPost': null,
   "serverPostUser": null,
-  "serverPostPassword": null
+  "serverPostPassword": null,
+
+  'jsonOutput': null,
 });
 
 var localIPv4Adress = "";
@@ -151,7 +153,16 @@ function sendPOST(sensor) {
       console.log("serverPOST failed: " + error);
     }
   });
+}
 
+// Write sensor data to JSON file
+function writeJson(sensor) {
+  const fileName = nconf.get('jsonOutput');
+  if(fileName == null) {
+    return;
+  }
+  fs.appendFile(fileName, JSON.stringify(sensor.json) + ",\n", (err) => {});
+  //appendJson(fileName, JSON.stringify(sensor.json));
 }
 
 // #############################################################
@@ -191,6 +202,7 @@ function processSensorData(buffer) {
 
     sendMQTT(sensor);   // send the sensor via MQTT
     sendPOST(sensor);   // send the sensor via JSON POST
+    writeJson(sensor);  // write to JSON file
 
     // check all sensors if they are considered offline
     // (no message within a given period)
